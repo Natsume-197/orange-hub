@@ -10,6 +10,7 @@ services:
     volumes:
       - syncthing:/config
       - /share:/sync
+      - /mnt/nvme1:/sync/nvme1
     ports:
       - 8384:8384
       - 22000:22000/tcp
