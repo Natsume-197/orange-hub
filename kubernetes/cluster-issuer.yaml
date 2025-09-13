@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: clusterissuer-prod
+  namespace: default
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: jonathan.197ariza@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - selector:
+          dnsZones:
+            - natsucloud.com
+            - "*.natsucloud.com"
+            - brigadasos.xyz
+            - "*.brigadasos.xyz"
+            - nadeshiko.co
+            - "*.nadeshiko.co"
+        dns01:
+          cloudflare:
+            email: jonathan.197ariza@gmail.com
+            apiTokenSecretRef:
+              name: cloudflare-api-token-secret
+              key: api-token

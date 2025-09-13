@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: n8n-secret
+type: Opaque
+stringData:
+  N8N_BASIC_AUTH_USER: generic
+  N8N_BASIC_AUTH_PASSWORD: 'generic'
+  N8N_ENCRYPTION_KEY: "generic"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  labels:
+    app: n8n
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      containers:
+      - name: n8n
+        image: n8nio/n8n:latest
+        ports:
+        - containerPort: 5678
+        env:
+        - name: N8N_HOST
+          value: "n8n.natsucloud.com"
+        - name: N8N_PROTOCOL
+          value: "https"
+#        - name: N8N_PORT
+#          value: "5678"
+        - name: N8N_EDITOR_BASE_URL
+          value: "https://n8n.natsucloud.com"
+        - name: N8N_WEBHOOK_URL
+          value: "https://n8n.natsucloud.com"
+        - name: WEBHOOK_TUNNEL_URL
+          value: "https://n8n.natsucloud.com"
+        - name: N8N_BASIC_AUTH_ACTIVE
+          value: "true"
+        - name: N8N_BASIC_AUTH_USER
+          valueFrom:
+            secretKeyRef:
+              name: n8n-secret
+              key: N8N_BASIC_AUTH_USER
+        - name: N8N_BASIC_AUTH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: n8n-secret
+              key: N8N_BASIC_AUTH_PASSWORD
+        - name: N8N_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: n8n-secret
+              key: N8N_ENCRYPTION_KEY
+        volumeMounts:
+        - name: data
+          mountPath: /home/node/.n8n
+      volumes:
+      - name: data
+        hostPath:
+          path: /mnt/nvme1/n8n/data
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-service
+spec:
+  selector:
+    app: n8n
+  ports:
+    - protocol: TCP
+      port: 5678
+      targetPort: 5678
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress-n8n
+  annotations:
+    cert-manager.io/cluster-issuer: "clusterissuer-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - n8n.natsucloud.com
+      secretName: n8n-tls-secret
+  rules:
+    - host: n8n.natsucloud.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: n8n-service
+                port:
+                  number: 5678
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ssh-outbound
+spec:
+  podSelector:
+    matchLabels:
+      app: n8n
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0

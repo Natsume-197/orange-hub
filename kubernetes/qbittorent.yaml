@@ -1,0 +1,108 @@
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: qbittorrent-secret
+type: Opaque
+stringData:
+  WEBUI_PASSWORD: generic
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  labels:
+    app: qbittorrent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      containers:
+      - name: qbittorrent
+        image: linuxserver/qbittorrent:latest
+        ports:
+        - containerPort: 8080
+        - containerPort: 6881
+        - containerPort: 6881
+          protocol: UDP
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "Europe/Madrid"
+        - name: WEBUI_PORT
+          value: "8080"
+        - name: WEBUI_USERNAME
+          value: "admin"
+        - name: WEBUI_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: qbittorrent-secret
+              key: WEBUI_PASSWORD
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: downloads
+          mountPath: /downloads
+      volumes:
+      - name: config
+        hostPath:
+          path: /mnt/nvme1/qbittorrent/config
+      - name: downloads
+        hostPath:
+          path: /mnt/nvme1/downloads
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-service
+spec:
+  selector:
+    app: qbittorrent
+  ports:
+    - name: webui
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - name: torrent-tcp
+      protocol: TCP
+      port: 6881
+      targetPort: 6881
+    - name: torrent-udp
+      protocol: UDP
+      port: 6881
+      targetPort: 6881
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress-qbittorrent
+  annotations:
+    cert-manager.io/cluster-issuer: "clusterissuer-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - qbit.natsucloud.com
+      secretName: qbit-tls-secret
+  rules:
+    - host: qbit.natsucloud.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent-service
+                port:
+                  number: 8080

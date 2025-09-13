@@ -1,0 +1,40 @@
+# Add kubernetes-dashboard repository
+# helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+# Deploy a Helm Release named "kubernetes-dashboard" using the kubernetes-dashboard chart
+# helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+
+# Create an user
+# kubectl create serviceaccount admin-user -n kubernetes-dashboard
+# kubectl create clusterrolebinding admin-user --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:admin-user
+
+# kubectl -n kubernetes-dashboard create token admin-user
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+  labels:
+    app: kubernetes-dashboard
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: clusterissuer-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - kbdashboard.natsucloud.com
+      secretName: certificate-prod-dashboard
+  rules:
+    - host: kbdashboard.natsucloud.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: kubernetes-dashboard-kong-proxy
+                port:
+                  number: 443

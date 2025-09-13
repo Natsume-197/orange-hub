@@ -1,0 +1,45 @@
+# kubectl create -f https://download.elastic.co/downloads/eck/2.14.0/crds.yaml
+# kubectl apply -f https://download.elastic.co/downloads/eck/2.14.0/operator.yaml
+
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: quickstart
+spec:
+  version: 8.15.3
+  count: 1
+  elasticsearchRef:
+    name: quickstart
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: default
+  labels:
+    app: kibana
+  annotations:
+    cert-manager.io/cluster-issuer: clusterissuer-prod
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - kibana.natsucloud.com
+      secretName: certificate-kibana
+  rules:
+    - host: kibana.natsucloud.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: quickstart-kb-http
+                port:
+                  number: 5601

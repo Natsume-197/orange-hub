@@ -1,0 +1,70 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: elastic-ingress
+  namespace: default
+  labels:
+    app: quickstart-es-default
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - elastic.natsucloud.com
+      secretName: certificate-elastic
+  rules:
+    - host: elastic.natsucloud.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: quickstart-es-http
+                port:
+                  number: 9200
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: quickstart
+spec:
+  version: 8.15.1
+  http:
+    service:
+      spec:
+        ports:
+        - name: http
+          nodePort: 30300
+          port: 9200
+          protocol: TCP
+          targetPort: 9200
+        type: NodePort
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  nodeSets:
+  - name: default
+    count: 1
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
+        storageClassName: local-path
+    podTemplate:
+      spec:
+        initContainers:
+          - name: install-plugins
+            command:
+              - sh
+              - -c
+              - |
+                bin/elasticsearch-plugin install analysis-icu && bin/elasticsearch-plugin install analysis-kuromoji
+    config:
+      node.store.allow_mmap: false
