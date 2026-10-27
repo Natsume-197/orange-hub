@@ -1,0 +1,15 @@
+# Static address on <LAN_IFACE> (ifupdown2).
+auto lo
+iface lo inet loopback
+
+iface <BRIDGE_PORT> inet manual
+
+iface <UNUSED_IFACE> inet manual
+
+auto <LAN_IFACE>
+iface <LAN_IFACE> inet static
+	address <SERVER_LAN_IP>/<PREFIX>
+	gateway <GATEWAY_IP>
+	bridge-ports <BRIDGE_PORT>
+	bridge-stp off
+	bridge-fd 0

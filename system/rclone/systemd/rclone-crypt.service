@@ -1,0 +1,26 @@
+# /etc/systemd/system/rclone-crypt.service — <CRYPT_REMOTE>: on <CRYPT_MOUNT> before Docker.
+[Unit]
+Description=Rclone encrypted library mount
+Documentation=https://rclone.org/commands/rclone_mount/
+Wants=network-online.target
+After=network-online.target
+Before=docker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=<SERVICE_USER>
+Environment=HOME=<SERVICE_HOME>
+# Clear a stale FUSE mount left by SIGKILL.
+ExecStartPre=-/usr/bin/fusermount3 -uz <CRYPT_MOUNT>
+ExecStart=<SCRIPT_DIR>/mount-crypt.sh
+ExecStartPost=<SCRIPT_DIR>/crypt-mount-ready.sh
+ExecStop=-/usr/bin/fusermount3 -u <CRYPT_MOUNT>
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=180
+TimeoutStopSec=30
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

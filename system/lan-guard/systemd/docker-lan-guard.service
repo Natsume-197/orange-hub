@@ -1,0 +1,16 @@
+# /etc/systemd/system/docker-lan-guard.service
+[Unit]
+Description=Block LAN access to selected Docker-published ports
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/docker-lan-guard.env
+ExecStart=/usr/local/sbin/docker-lan-guard.sh
+ExecStop=/bin/sh -c '/usr/sbin/iptables -D DOCKER-USER -j LAN-GUARD 2>/dev/null; /usr/sbin/iptables -F LAN-GUARD 2>/dev/null; /usr/sbin/iptables -X LAN-GUARD 2>/dev/null; true'
+
+[Install]
+WantedBy=docker.service

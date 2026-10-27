@@ -1,0 +1,10 @@
+[Unit]
+Description=Vaultwarden backup
+
+[Timer]
+OnCalendar=<BACKUP_ONCALENDAR>
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

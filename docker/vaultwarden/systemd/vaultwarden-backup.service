@@ -1,0 +1,10 @@
+[Unit]
+Description=Vaultwarden encrypted backup to Google Drive
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/vaultwarden-backup.sh
+Nice=10
+IOSchedulingClass=idle

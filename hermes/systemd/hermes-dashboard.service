@@ -1,0 +1,22 @@
+# ~/.config/systemd/user/hermes-dashboard.service
+[Unit]
+Description=Hermes Agent Web Dashboard (loopback only; exposed via Tailscale Serve)
+After=network-online.target hermes-gateway.service
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+WorkingDirectory=<HERMES_HOME>
+Environment="PATH=<HERMES_HOME>/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="HERMES_HOME=<HERMES_HOME>"
+EnvironmentFile=<HERMES_HOME>/dashboard.env
+ExecStart="<HERMES_HOME>/bin/hermes" "dashboard" "--host" "127.0.0.1" "--port" "<HERMES_DASHBOARD_PORT>" "--no-open"
+Restart=always
+RestartSec=10
+RestartPreventExitStatus=78
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,14 @@
+# Host override. Place next to the upstream compose in <APP_DIR>.
+services:
+  server:
+    ports:
+      - "${APP_HTTP_PORT}:${APP_CONTAINER_PORT}"
+      - "${APP_HTTP_ALT_PORT}:${APP_CONTAINER_PORT}"
+    volumes:
+      - "<CRYPT_MOUNT>:<CRYPT_LIBRARY_MOUNT>"
+      - "<PUBLIC_LIBRARY_DIR>:<PUBLIC_LIBRARY_MOUNT>"
+      - "<MEDIA_DIR>/<COLLECTION>:<MEDIA_MOUNT>:ro"
+volumes:
+  postgres_data:
+    name: ${POSTGRES_VOLUME}
+    external: true

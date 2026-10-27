@@ -1,0 +1,8 @@
+# Append to the rclone config (mode 600). Obscured secrets; keep the plaintext password and salt offline.
+[<BACKUP_REMOTE>]
+type = crypt
+remote = <RCLONE_REMOTE>:<BACKUP_PATH>
+filename_encryption = standard
+directory_name_encryption = true
+password = ${BACKUP_CRYPT_PASSWORD_OBSCURED}
+password2 = ${BACKUP_CRYPT_SALT_OBSCURED}

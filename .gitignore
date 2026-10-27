@@ -1,0 +1,18 @@
+# Never commit runtime data or secrets
+*.env
+!*.env.example
+.env
+vaultwarden.env
+tunnel.env
+dashboard.env
+rclone.conf
+*.sqlite
+*.sqlite3*
+*.db
+*.pem
+*.key
+*.bak*
+docker/nginx-proxy-manager/nginx-data/
+docker/nginx-proxy-manager/nginx-letsencrypt/
+docker/vaultwarden/data/
+docker/vaultwarden/backups/

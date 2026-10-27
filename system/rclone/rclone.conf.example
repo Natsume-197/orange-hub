@@ -1,0 +1,24 @@
+# Rclone config (mode 600). Structure only.
+[<RCLONE_REMOTE>]
+type = drive
+scope = drive
+client_id = ${RCLONE_CLIENT_ID}
+client_secret = ${RCLONE_CLIENT_SECRET}
+token = ${RCLONE_OAUTH_TOKEN_JSON}
+team_drive =
+
+[<CRYPT_REMOTE>]
+type = crypt
+remote = <RCLONE_REMOTE>:<LIBRARY_PATH>
+filename_encryption = standard
+directory_name_encryption = true
+password = ${LIBRARY_CRYPT_PASSWORD_OBSCURED}
+password2 = ${LIBRARY_CRYPT_SALT_OBSCURED}
+
+[<BACKUP_REMOTE>]
+type = crypt
+remote = <RCLONE_REMOTE>:<BACKUP_PATH>
+filename_encryption = standard
+directory_name_encryption = true
+password = ${BACKUP_CRYPT_PASSWORD_OBSCURED}
+password2 = ${BACKUP_CRYPT_SALT_OBSCURED}

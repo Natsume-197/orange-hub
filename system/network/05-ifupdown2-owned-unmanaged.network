@@ -1,0 +1,6 @@
+# Leave the bridge port and any unused NIC to ifupdown.
+[Match]
+Name=<BRIDGE_PORT> <UNUSED_IFACE>
+
+[Link]
+Unmanaged=yes

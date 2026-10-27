@@ -1,0 +1,8 @@
+# Key-only root. Allow 22/tcp from <LAN_CIDR> on the firewall; remote SSH is Tailscale.
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+X11Forwarding no
+UsePAM yes
+ListenAddress 0.0.0.0

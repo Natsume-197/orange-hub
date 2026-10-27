@@ -1,0 +1,15 @@
+# Loopback memory API.
+services:
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    container_name: hindsight
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - "127.0.0.1:${HINDSIGHT_API_PORT}:${HINDSIGHT_API_PORT}"
+      - "127.0.0.1:${HINDSIGHT_CP_PORT}:${HINDSIGHT_CP_PORT}"
+    volumes:
+      - hindsight-data:/home/hindsight/.pg0
+volumes:
+  hindsight-data:
+    external: true
